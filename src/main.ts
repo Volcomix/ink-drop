@@ -1,8 +1,36 @@
+import GUI from 'lil-gui'
+import Stats from 'stats.js'
+import * as twgl from 'twgl.js'
+import shaderVert from './main.vert'
+import shaderFrag from './simple.frag'
 import './style.css'
 
-const app = document.querySelector<HTMLDivElement>('#app')!
+const gui = new GUI()
 
-app.innerHTML = `
-  <h1>Hello Vite!</h1>
-  <a href="https://vitejs.dev/guide/features.html" target="_blank">Documentation</a>
-`
+const stats = new Stats()
+document.body.appendChild(stats.dom)
+
+const gl = document.querySelector('canvas')!.getContext('webgl2')!
+
+const programInfo = twgl.createProgramInfo(gl, [shaderVert, shaderFrag])
+
+const arrays = {
+  a_position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0],
+  a_texCoord: [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1],
+}
+
+const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays)
+
+function animate() {
+  stats.update()
+
+  twgl.resizeCanvasToDisplaySize(gl.canvas)
+  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+  gl.useProgram(programInfo.program)
+  twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo)
+  twgl.drawBufferInfo(gl, bufferInfo)
+
+  requestAnimationFrame(animate)
+}
+
+requestAnimationFrame(animate)
