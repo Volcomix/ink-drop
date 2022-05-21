@@ -21,13 +21,19 @@ const arrays = {
 
 const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays)
 
-function animate() {
+function animate(time: number) {
   stats.update()
 
   twgl.resizeCanvasToDisplaySize(gl.canvas)
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+
+  const uniforms = {
+    a_time: time * 0.001,
+  }
+
   gl.useProgram(programInfo.program)
   twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo)
+  twgl.setUniforms(programInfo, uniforms)
   twgl.drawBufferInfo(gl, bufferInfo)
 
   requestAnimationFrame(animate)
