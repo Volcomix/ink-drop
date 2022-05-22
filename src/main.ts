@@ -27,14 +27,19 @@ const attachments = [
   },
 ]
 
-const frameBufferInfo = twgl.createFramebufferInfo(gl, attachments)
+let frameBufferInfoPrevious = twgl.createFramebufferInfo(gl, attachments)
+let frameBufferInfoNext = twgl.createFramebufferInfo(gl, attachments)
 
 function animate(time: number) {
   updateStats()
   twgl.resizeCanvasToDisplaySize(gl.canvas)
 
   if (mouse.isDown) {
-    twgl.bindFramebufferInfo(gl, frameBufferInfo)
+    const temp = frameBufferInfoPrevious
+    frameBufferInfoPrevious = frameBufferInfoNext
+    frameBufferInfoNext = temp
+
+    twgl.bindFramebufferInfo(gl, frameBufferInfoNext)
 
     const uniforms = {
       u_time: time * 0.001,
@@ -56,7 +61,7 @@ function animate(time: number) {
     u_background: config.background.transparent
       ? [0, 0, 0, 0]
       : [...config.background.color, 1],
-    u_texture: frameBufferInfo.attachments[0],
+    u_texture: frameBufferInfoNext.attachments[0],
   }
 
   gl.useProgram(programInfoDraw.program)

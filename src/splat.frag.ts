@@ -11,13 +11,14 @@ uniform vec2 u_resolution;
 uniform vec2 u_mousePosition;
 uniform float u_splatRadius;
 uniform vec3 u_dyeColor;
+uniform sampler2D u_texture;
 
 out vec4 outColor;
 
 void main() {
   vec2 diff = v_texCoord * u_resolution - u_mousePosition;
   float quantity = exp(-3.0 * length(diff) / u_splatRadius);
-  outColor = vec4(u_dyeColor, 1) * quantity;
+  outColor = texture(u_texture, v_texCoord) + vec4(u_dyeColor, 1) * quantity;
 }
 
 `

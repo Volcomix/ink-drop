@@ -3,7 +3,7 @@ import { hideStats, showStats } from './stats'
 
 const config = {
   stats: true,
-  splatRadius: 128,
+  splatRadius: 64,
   dyeColor: [0, 0, 1],
   background: {
     transparent: false,
