@@ -1,35 +1,11 @@
-import GUI from 'lil-gui'
-import Stats from 'stats.js'
 import * as twgl from 'twgl.js'
+import config from './config'
+import gl from './gl'
 import shaderVert from './main.vert'
+import mouse from './mouse'
 import shaderFrag from './simple.frag'
+import { updateStats } from './stats'
 import './style.css'
-
-const config = {
-  stats: true,
-  splatRadius: 128,
-  splatColor: [0, 0, 1],
-}
-
-const stats = new Stats()
-
-if (config.stats) {
-  document.body.appendChild(stats.dom)
-}
-
-const gui = new GUI()
-
-gui.add(config, 'stats').onChange((isStatsVisible: boolean) => {
-  if (isStatsVisible) {
-    document.body.appendChild(stats.dom)
-  } else {
-    stats.dom.remove()
-  }
-})
-gui.add(config, 'splatRadius', 0)
-gui.addColor(config, 'splatColor')
-
-const gl = document.querySelector('canvas')!.getContext('webgl2')!
 
 const programInfo = twgl.createProgramInfo(gl, [shaderVert, shaderFrag])
 
@@ -40,33 +16,8 @@ const arrays = {
 
 const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays)
 
-const mouse = {
-  isDown: false,
-  position: [0, 0],
-}
-
-function updateMousePosition(event: MouseEvent) {
-  mouse.position = [event.offsetX, gl.canvas.height - event.offsetY]
-}
-
-gl.canvas.addEventListener('mousedown', (event) => {
-  mouse.isDown = true
-  updateMousePosition(event)
-})
-
-gl.canvas.addEventListener('mousemove', (event) => {
-  if (!mouse.isDown) {
-    return
-  }
-  updateMousePosition(event)
-})
-
-gl.canvas.addEventListener('mouseup', () => {
-  mouse.isDown = false
-})
-
 function animate(time: number) {
-  stats.update()
+  updateStats()
 
   if (mouse.isDown) {
     twgl.resizeCanvasToDisplaySize(gl.canvas)
