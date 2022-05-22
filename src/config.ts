@@ -5,6 +5,10 @@ const config = {
   stats: true,
   splatRadius: 128,
   dyeColor: [0, 0, 1],
+  background: {
+    transparent: false,
+    color: [0, 0, 0],
+  },
 }
 
 if (config.stats) {
@@ -12,7 +16,6 @@ if (config.stats) {
 }
 
 const gui = new GUI()
-
 gui.add(config, 'stats').onChange((stats: boolean) => {
   if (stats) {
     showStats()
@@ -22,5 +25,17 @@ gui.add(config, 'stats').onChange((stats: boolean) => {
 })
 gui.add(config, 'splatRadius', 0)
 gui.addColor(config, 'dyeColor')
+
+const background = gui.addFolder('Background').close()
+background
+  .add(config.background, 'transparent')
+  .onChange((transparent: boolean) => {
+    if (transparent) {
+      backgroundColor.disable()
+    } else {
+      backgroundColor.enable()
+    }
+  })
+const backgroundColor = background.addColor(config.background, 'color')
 
 export default config

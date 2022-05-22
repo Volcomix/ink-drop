@@ -1,13 +1,15 @@
 import * as twgl from 'twgl.js'
+import baseVert from './base.vert'
 import config from './config'
+import drawFrag from './draw.frag'
 import gl from './gl'
-import shaderVert from './main.vert'
 import mouse from './mouse'
-import shaderFrag from './simple.frag'
+import splatFrag from './splat.frag'
 import { updateStats } from './stats'
 import './style.css'
 
-const programInfo = twgl.createProgramInfo(gl, [shaderVert, shaderFrag])
+const programInfoSplat = twgl.createProgramInfo(gl, [baseVert, splatFrag])
+const programInfoDraw = twgl.createProgramInfo(gl, [baseVert, drawFrag])
 
 const arrays = {
   a_position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0],
@@ -16,12 +18,23 @@ const arrays = {
 
 const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays)
 
+const attachments = [
+  {
+    format: gl.RGBA,
+    type: gl.UNSIGNED_BYTE,
+    min: gl.LINEAR,
+    wrap: gl.CLAMP_TO_EDGE,
+  },
+]
+
+const frameBufferInfo = twgl.createFramebufferInfo(gl, attachments)
+
 function animate(time: number) {
   updateStats()
+  twgl.resizeCanvasToDisplaySize(gl.canvas)
 
   if (mouse.isDown) {
-    twgl.resizeCanvasToDisplaySize(gl.canvas)
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+    twgl.bindFramebufferInfo(gl, frameBufferInfo)
 
     const uniforms = {
       u_time: time * 0.001,
@@ -31,11 +44,25 @@ function animate(time: number) {
       u_dyeColor: config.dyeColor,
     }
 
-    gl.useProgram(programInfo.program)
-    twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo)
-    twgl.setUniforms(programInfo, uniforms)
+    gl.useProgram(programInfoSplat.program)
+    twgl.setBuffersAndAttributes(gl, programInfoSplat, bufferInfo)
+    twgl.setUniforms(programInfoSplat, uniforms)
     twgl.drawBufferInfo(gl, bufferInfo)
   }
+
+  twgl.bindFramebufferInfo(gl, null)
+
+  const uniforms = {
+    u_background: config.background.transparent
+      ? [0, 0, 0, 0]
+      : [...config.background.color, 1],
+    u_texture: frameBufferInfo.attachments[0],
+  }
+
+  gl.useProgram(programInfoDraw.program)
+  twgl.setBuffersAndAttributes(gl, programInfoDraw, bufferInfo)
+  twgl.setUniforms(programInfoDraw, uniforms)
+  twgl.drawBufferInfo(gl, bufferInfo)
 
   requestAnimationFrame(animate)
 }

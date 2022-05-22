@@ -17,7 +17,7 @@ out vec4 outColor;
 void main() {
   vec2 diff = v_texCoord * u_resolution - u_mousePosition;
   float quantity = exp(-3.0 * length(diff) / u_splatRadius);
-  outColor = vec4(u_dyeColor * quantity, 1);
+  outColor = vec4(u_dyeColor, 1) * quantity;
 }
 
 `
