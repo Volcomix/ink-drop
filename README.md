@@ -2,6 +2,8 @@
 
 > Ink drop simulation and rendering in real-time.
 
+:point_right: https://volcomix.github.io/ink-drop
+
 ## References
 
 - https://xing-mei.github.io/files/ink.pdf
