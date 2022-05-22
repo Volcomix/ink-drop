@@ -40,47 +40,51 @@ const arrays = {
 
 const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays)
 
-const uniforms = {
-  u_time: 0,
-  u_resolution: [0, 0],
-  u_mousePos: [0, 0],
-  u_splatRadius: 0,
-  u_splatColor: [0, 0, 0],
+const mouse = {
+  isDown: false,
+  position: [0, 0],
 }
 
-function updateMousePos(event: MouseEvent) {
-  uniforms.u_mousePos = [event.offsetX, gl.canvas.height - event.offsetY]
+function updateMousePosition(event: MouseEvent) {
+  mouse.position = [event.offsetX, gl.canvas.height - event.offsetY]
 }
 
 gl.canvas.addEventListener('mousedown', (event) => {
-  updateMousePos(event)
+  mouse.isDown = true
+  updateMousePosition(event)
 })
 
 gl.canvas.addEventListener('mousemove', (event) => {
-  if (event.buttons) {
-    updateMousePos(event)
+  if (!mouse.isDown) {
+    return
   }
+  updateMousePosition(event)
 })
 
 gl.canvas.addEventListener('mouseup', () => {
-  uniforms.u_mousePos = [0, 0]
+  mouse.isDown = false
 })
 
 function animate(time: number) {
   stats.update()
 
-  twgl.resizeCanvasToDisplaySize(gl.canvas)
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+  if (mouse.isDown) {
+    twgl.resizeCanvasToDisplaySize(gl.canvas)
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 
-  uniforms.u_time = time * 0.001
-  uniforms.u_resolution = [gl.canvas.width, gl.canvas.height]
-  uniforms.u_splatRadius = config.splatRadius
-  uniforms.u_splatColor = config.splatColor
+    const uniforms = {
+      u_time: time * 0.001,
+      u_resolution: [gl.canvas.width, gl.canvas.height],
+      u_mousePosition: mouse.position,
+      u_splatRadius: config.splatRadius,
+      u_splatColor: config.splatColor,
+    }
 
-  gl.useProgram(programInfo.program)
-  twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo)
-  twgl.setUniforms(programInfo, uniforms)
-  twgl.drawBufferInfo(gl, bufferInfo)
+    gl.useProgram(programInfo.program)
+    twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo)
+    twgl.setUniforms(programInfo, uniforms)
+    twgl.drawBufferInfo(gl, bufferInfo)
+  }
 
   requestAnimationFrame(animate)
 }
