@@ -28,7 +28,7 @@ function animate(time: number) {
       u_resolution: [gl.canvas.width, gl.canvas.height],
       u_mousePosition: mouse.position,
       u_splatRadius: config.splatRadius,
-      u_splatColor: config.splatColor,
+      u_dyeColor: config.dyeColor,
     }
 
     gl.useProgram(programInfo.program)

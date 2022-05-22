@@ -4,7 +4,7 @@ import { hideStats, showStats } from './stats'
 const config = {
   stats: true,
   splatRadius: 128,
-  splatColor: [0, 0, 1],
+  dyeColor: [0, 0, 1],
 }
 
 if (config.stats) {
@@ -21,6 +21,6 @@ gui.add(config, 'stats').onChange((stats: boolean) => {
   }
 })
 gui.add(config, 'splatRadius', 0)
-gui.addColor(config, 'splatColor')
+gui.addColor(config, 'dyeColor')
 
 export default config
