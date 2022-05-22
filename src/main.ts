@@ -5,10 +5,29 @@ import shaderVert from './main.vert'
 import shaderFrag from './simple.frag'
 import './style.css'
 
-const gui = new GUI()
+const config = {
+  stats: true,
+  splatRadius: 128,
+  splatColor: [0, 0, 1],
+}
 
 const stats = new Stats()
-document.body.appendChild(stats.dom)
+
+if (config.stats) {
+  document.body.appendChild(stats.dom)
+}
+
+const gui = new GUI()
+
+gui.add(config, 'stats').onChange((isStatsVisible: boolean) => {
+  if (isStatsVisible) {
+    document.body.appendChild(stats.dom)
+  } else {
+    stats.dom.remove()
+  }
+})
+gui.add(config, 'splatRadius', 0)
+gui.addColor(config, 'splatColor')
 
 const gl = document.querySelector('canvas')!.getContext('webgl2')!
 
@@ -23,8 +42,10 @@ const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays)
 
 const uniforms = {
   u_time: 0,
-  u_resolution: [gl.canvas.width, gl.canvas.height],
+  u_resolution: [0, 0],
   u_mousePos: [0, 0],
+  u_splatRadius: 0,
+  u_splatColor: [0, 0, 0],
 }
 
 function updateMousePos(event: MouseEvent) {
@@ -53,6 +74,8 @@ function animate(time: number) {
 
   uniforms.u_time = time * 0.001
   uniforms.u_resolution = [gl.canvas.width, gl.canvas.height]
+  uniforms.u_splatRadius = config.splatRadius
+  uniforms.u_splatColor = config.splatColor
 
   gl.useProgram(programInfo.program)
   twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo)
