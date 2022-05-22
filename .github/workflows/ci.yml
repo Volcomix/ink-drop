@@ -1,0 +1,27 @@
+name: CI
+on: [push]
+jobs:
+  build-and-deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Build
+        run: yarn build
+
+      - name: Deploy
+        if: github.ref == 'refs/heads/main'
+        working-directory: dist
+        run: |
+          git init
+          git config user.email "github-actions@users.noreply.github.com"
+          git config user.name "GitHub Actions"
+          git checkout -b main
+          git add -A
+          git commit -m 'deploy'
+          git push -f https://x-access-token:${{ github.token }}@github.com/${{ github.repository }} main:gh-pages

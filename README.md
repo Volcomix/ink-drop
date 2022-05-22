@@ -1,4 +1,6 @@
-# Ink Drop
+# [WIP] Ink Drop
+
+> Ink drop simulation and rendering in real-time.
 
 ## References
 
