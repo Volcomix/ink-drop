@@ -5,7 +5,7 @@ const config = {
   stats: true,
   splatRadius: 64,
   dyeColor: [0, 0, 1],
-  stateField: 'dye' as 'dye' | 'velocity',
+  field: 'dye' as 'dye' | 'velocity',
 }
 
 if (config.stats) {
@@ -22,6 +22,6 @@ gui.add(config, 'stats').onChange((stats: boolean) => {
 })
 gui.add(config, 'splatRadius', 0)
 gui.addColor(config, 'dyeColor')
-gui.add(config, 'stateField', ['dye', 'velocity'])
+gui.add(config, 'field', ['dye', 'velocity'])
 
 export default config

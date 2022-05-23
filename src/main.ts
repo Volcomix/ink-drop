@@ -66,7 +66,7 @@ function animate(time: number) {
     twgl.drawBufferInfo(gl, buffer)
   }
 
-  if (config.stateField === 'dye') {
+  if (config.field === 'dye') {
     twgl.bindFramebufferInfo(gl, null)
 
     const uniforms = {
