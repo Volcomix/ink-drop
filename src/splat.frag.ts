@@ -17,7 +17,7 @@ out vec4 outColor;
 
 void main() {
   vec2 diff = v_texCoord * u_resolution - u_mousePosition;
-  vec3 color = exp(-3.0 * length(diff) / u_radius) * u_color;
+  vec3 color = exp(-4.0 * length(diff) / u_radius) * u_color;
   vec3 previousColor = texture(u_previousColor, v_texCoord).rgb;
   outColor = vec4(previousColor + color, 1);
 }

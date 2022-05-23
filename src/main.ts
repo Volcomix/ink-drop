@@ -21,18 +21,7 @@ const arrays = {
 }
 const buffer = twgl.createBufferInfoFromArrays(gl, arrays)
 
-const dyeAttachments = [
-  {
-    format: gl.RGBA,
-    type: gl.UNSIGNED_BYTE,
-    min: gl.LINEAR,
-    wrap: gl.CLAMP_TO_EDGE,
-  },
-]
-let dyePrevious = twgl.createFramebufferInfo(gl, dyeAttachments)
-let dyeNext = twgl.createFramebufferInfo(gl, dyeAttachments)
-
-const velocityAttachements = [
+const attachments = [
   {
     format: gl.RGBA,
     type: gl.HALF_FLOAT,
@@ -41,8 +30,12 @@ const velocityAttachements = [
     wrap: gl.CLAMP_TO_EDGE,
   },
 ]
-let velocityPrevious = twgl.createFramebufferInfo(gl, velocityAttachements)
-let velocityNext = twgl.createFramebufferInfo(gl, velocityAttachements)
+
+let dyePrevious = twgl.createFramebufferInfo(gl, attachments)
+let dyeNext = twgl.createFramebufferInfo(gl, attachments)
+
+let velocityPrevious = twgl.createFramebufferInfo(gl, attachments)
+let velocityNext = twgl.createFramebufferInfo(gl, attachments)
 
 function animate(time: number) {
   updateStats()
