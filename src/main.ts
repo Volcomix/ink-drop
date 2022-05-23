@@ -1,15 +1,19 @@
 import * as twgl from 'twgl.js'
 import baseVert from './base.vert'
 import config from './config'
-import drawFrag from './draw.frag'
+import dyeFrag from './dye.frag'
 import gl from './gl'
 import mouse from './mouse'
 import splatFrag from './splat.frag'
 import { updateStats } from './stats'
 import './style.css'
+import velocityFrag from './velocity.frag'
+
+twgl.addExtensionsToContext(gl)
 
 const splatProgram = twgl.createProgramInfo(gl, [baseVert, splatFrag])
-const drawProgram = twgl.createProgramInfo(gl, [baseVert, drawFrag])
+const dyeProgram = twgl.createProgramInfo(gl, [baseVert, dyeFrag])
+const velocityProgram = twgl.createProgramInfo(gl, [baseVert, velocityFrag])
 
 const arrays = {
   a_position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0],
@@ -31,7 +35,8 @@ let dyeNext = twgl.createFramebufferInfo(gl, dyeAttachments)
 const velocityAttachements = [
   {
     format: gl.RGBA,
-    type: gl.UNSIGNED_BYTE,
+    type: gl.HALF_FLOAT,
+    internalFormat: gl.RGBA16F,
     min: gl.LINEAR,
     wrap: gl.CLAMP_TO_EDGE,
   },
@@ -48,7 +53,7 @@ function animate(time: number) {
       u_time: time * 0.001,
       u_resolution: [gl.canvas.width, gl.canvas.height],
       u_mousePosition: mouse.position,
-      u_splatRadius: config.splatRadius,
+      u_radius: config.splatRadius,
     }
 
     gl.useProgram(splatProgram.program)
@@ -62,8 +67,8 @@ function animate(time: number) {
     twgl.bindFramebufferInfo(gl, dyeNext)
 
     const dyeUniforms = {
-      u_texture: dyePrevious.attachments[0],
       u_color: config.dyeColor,
+      u_previousColor: dyePrevious.attachments[0],
     }
 
     twgl.setUniforms(splatProgram, dyeUniforms)
@@ -76,27 +81,38 @@ function animate(time: number) {
     twgl.bindFramebufferInfo(gl, velocityNext)
 
     const velocityUniforms = {
-      u_texture: velocityPrevious.attachments[0],
       u_color: [...mouse.movement, 0],
+      u_previousColor: velocityPrevious.attachments[0],
     }
 
     twgl.setUniforms(splatProgram, velocityUniforms)
     twgl.drawBufferInfo(gl, buffer)
   }
 
-  twgl.bindFramebufferInfo(gl, null)
+  if (config.stateField === 'dye') {
+    twgl.bindFramebufferInfo(gl, null)
 
-  const uniforms = {
-    u_background: config.background.transparent
-      ? [0, 0, 0, 0]
-      : [...config.background.color, 1],
-    u_texture: dyeNext.attachments[0],
+    const uniforms = {
+      u_dye: dyeNext.attachments[0],
+    }
+
+    gl.useProgram(dyeProgram.program)
+    twgl.setBuffersAndAttributes(gl, dyeProgram, buffer)
+    twgl.setUniforms(dyeProgram, uniforms)
+    twgl.drawBufferInfo(gl, buffer)
+  } else {
+    twgl.bindFramebufferInfo(gl, null)
+
+    const uniforms = {
+      u_resolution: [gl.canvas.width, gl.canvas.height],
+      u_velocity: velocityNext.attachments[0],
+    }
+
+    gl.useProgram(velocityProgram.program)
+    twgl.setBuffersAndAttributes(gl, velocityProgram, buffer)
+    twgl.setUniforms(velocityProgram, uniforms)
+    twgl.drawBufferInfo(gl, buffer)
   }
-
-  gl.useProgram(drawProgram.program)
-  twgl.setBuffersAndAttributes(gl, drawProgram, buffer)
-  twgl.setUniforms(drawProgram, uniforms)
-  twgl.drawBufferInfo(gl, buffer)
 
   requestAnimationFrame(animate)
 }
