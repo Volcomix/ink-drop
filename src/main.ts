@@ -2,6 +2,7 @@ import * as twgl from 'twgl.js'
 import baseVert from './base.vert'
 import config from './config'
 import dyeFrag from './dye.frag'
+import { createField } from './field'
 import gl from './gl'
 import mouse from './mouse'
 import splatFrag from './splat.frag'
@@ -21,21 +22,8 @@ const arrays = {
 }
 const buffer = twgl.createBufferInfoFromArrays(gl, arrays)
 
-const attachments = [
-  {
-    format: gl.RGBA,
-    type: gl.HALF_FLOAT,
-    internalFormat: gl.RGBA16F,
-    min: gl.LINEAR,
-    wrap: gl.CLAMP_TO_EDGE,
-  },
-]
-
-let dyePrevious = twgl.createFramebufferInfo(gl, attachments)
-let dyeNext = twgl.createFramebufferInfo(gl, attachments)
-
-let velocityPrevious = twgl.createFramebufferInfo(gl, attachments)
-let velocityNext = twgl.createFramebufferInfo(gl, attachments)
+const dye = createField()
+const velocity = createField()
 
 function animate(time: number) {
   updateStats()
@@ -53,29 +41,25 @@ function animate(time: number) {
     twgl.setBuffersAndAttributes(gl, splatProgram, buffer)
     twgl.setUniforms(splatProgram, uniforms)
 
-    const dyeTemp = dyePrevious
-    dyePrevious = dyeNext
-    dyeNext = dyeTemp
+    dye.swap()
 
-    twgl.bindFramebufferInfo(gl, dyeNext)
+    twgl.bindFramebufferInfo(gl, dye.next)
 
     const dyeUniforms = {
       u_color: config.dyeColor,
-      u_previousColor: dyePrevious.attachments[0],
+      u_previousColor: dye.previous.attachments[0],
     }
 
     twgl.setUniforms(splatProgram, dyeUniforms)
     twgl.drawBufferInfo(gl, buffer)
 
-    const velocityTemp = velocityPrevious
-    velocityPrevious = velocityNext
-    velocityNext = velocityTemp
+    velocity.swap()
 
-    twgl.bindFramebufferInfo(gl, velocityNext)
+    twgl.bindFramebufferInfo(gl, velocity.next)
 
     const velocityUniforms = {
       u_color: [...mouse.movement, 0],
-      u_previousColor: velocityPrevious.attachments[0],
+      u_previousColor: velocity.previous.attachments[0],
     }
 
     twgl.setUniforms(splatProgram, velocityUniforms)
@@ -86,7 +70,7 @@ function animate(time: number) {
     twgl.bindFramebufferInfo(gl, null)
 
     const uniforms = {
-      u_dye: dyeNext.attachments[0],
+      u_dye: dye.next.attachments[0],
     }
 
     gl.useProgram(dyeProgram.program)
@@ -98,7 +82,7 @@ function animate(time: number) {
 
     const uniforms = {
       u_resolution: [gl.canvas.width, gl.canvas.height],
-      u_velocity: velocityNext.attachments[0],
+      u_velocity: velocity.next.attachments[0],
     }
 
     gl.useProgram(velocityProgram.program)
