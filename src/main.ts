@@ -1,4 +1,5 @@
 import * as twgl from 'twgl.js'
+import advectFrag from './advect.frag'
 import baseVert from './base.vert'
 import config from './config'
 import dyeFrag from './dye.frag'
@@ -12,6 +13,7 @@ import velocityFrag from './velocity.frag'
 
 twgl.addExtensionsToContext(gl)
 
+const advectProgram = twgl.createProgramInfo(gl, [baseVert, advectFrag])
 const splatProgram = twgl.createProgramInfo(gl, [baseVert, splatFrag])
 const dyeProgram = twgl.createProgramInfo(gl, [baseVert, dyeFrag])
 const velocityProgram = twgl.createProgramInfo(gl, [baseVert, velocityFrag])
@@ -25,14 +27,21 @@ const buffer = twgl.createBufferInfoFromArrays(gl, arrays)
 const dye = createField()
 const velocity = createField()
 
+let previousTime = Date.now()
+
 requestAnimationFrame(animate)
 
 function animate(time: number) {
   updateStats()
   twgl.resizeCanvasToDisplaySize(gl.canvas)
 
+  const timeStep = (time - previousTime) * 0.001
+  previousTime = time
+
+  advect(timeStep)
+
   if (mouse.isDown) {
-    splat(time)
+    splat(timeStep)
   }
 
   if (config.field === 'dye') {
@@ -44,9 +53,36 @@ function animate(time: number) {
   requestAnimationFrame(animate)
 }
 
-function splat(time: number) {
+function advect(timeStep: number) {
   const uniforms = {
-    u_time: time * 0.001,
+    u_scale: [timeStep / gl.canvas.width, timeStep / gl.canvas.height],
+    u_velocity: velocity.current.attachments[0],
+  }
+
+  gl.useProgram(advectProgram.program)
+  twgl.setBuffersAndAttributes(gl, advectProgram, buffer)
+  twgl.setUniforms(advectProgram, uniforms)
+
+  const velocityUniforms = {
+    u_currentQuantity: velocity.current.attachments[0],
+  }
+  twgl.bindFramebufferInfo(gl, velocity.next)
+  twgl.setUniforms(advectProgram, velocityUniforms)
+  twgl.drawBufferInfo(gl, buffer)
+
+  const dyeUniforms = {
+    u_currentQuantity: dye.current.attachments[0],
+  }
+  twgl.bindFramebufferInfo(gl, dye.next)
+  twgl.setUniforms(advectProgram, dyeUniforms)
+  twgl.drawBufferInfo(gl, buffer)
+
+  velocity.swap()
+  dye.swap()
+}
+
+function splat(timeStep: number) {
+  const uniforms = {
     u_resolution: [gl.canvas.width, gl.canvas.height],
     u_mousePosition: mouse.position,
     u_radius: config.splatRadius,
@@ -56,36 +92,31 @@ function splat(time: number) {
   twgl.setBuffersAndAttributes(gl, splatProgram, buffer)
   twgl.setUniforms(splatProgram, uniforms)
 
-  dye.swap()
-
-  twgl.bindFramebufferInfo(gl, dye.next)
+  const velocityUniforms = {
+    u_quantity: [mouse.movement[0] / timeStep, mouse.movement[1] / timeStep, 0],
+    u_currentQuantity: velocity.current.attachments[0],
+  }
+  twgl.bindFramebufferInfo(gl, velocity.next)
+  twgl.setUniforms(splatProgram, velocityUniforms)
+  twgl.drawBufferInfo(gl, buffer)
 
   const dyeUniforms = {
-    u_color: config.dyeColor,
-    u_previousColor: dye.previous.attachments[0],
+    u_quantity: config.dyeColor,
+    u_currentQuantity: dye.current.attachments[0],
   }
-
+  twgl.bindFramebufferInfo(gl, dye.next)
   twgl.setUniforms(splatProgram, dyeUniforms)
   twgl.drawBufferInfo(gl, buffer)
 
   velocity.swap()
-
-  twgl.bindFramebufferInfo(gl, velocity.next)
-
-  const velocityUniforms = {
-    u_color: [...mouse.movement, 0],
-    u_previousColor: velocity.previous.attachments[0],
-  }
-
-  twgl.setUniforms(splatProgram, velocityUniforms)
-  twgl.drawBufferInfo(gl, buffer)
+  dye.swap()
 }
 
 function renderDye() {
   twgl.bindFramebufferInfo(gl, null)
 
   const uniforms = {
-    u_dye: dye.next.attachments[0],
+    u_dye: dye.current.attachments[0],
   }
 
   gl.useProgram(dyeProgram.program)
@@ -98,8 +129,8 @@ function renderVelocity() {
   twgl.bindFramebufferInfo(gl, null)
 
   const uniforms = {
-    u_resolution: [gl.canvas.width, gl.canvas.height],
-    u_velocity: velocity.next.attachments[0],
+    u_scale: 4 / Math.max(gl.canvas.width, gl.canvas.height),
+    u_velocity: velocity.current.attachments[0],
   }
 
   gl.useProgram(velocityProgram.program)

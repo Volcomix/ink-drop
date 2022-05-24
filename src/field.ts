@@ -13,11 +13,11 @@ const attachments = [
 
 export function createField() {
   return {
-    previous: twgl.createFramebufferInfo(gl, attachments),
+    current: twgl.createFramebufferInfo(gl, attachments),
     next: twgl.createFramebufferInfo(gl, attachments),
     swap() {
-      const temp = this.previous
-      this.previous = this.next
+      const temp = this.current
+      this.current = this.next
       this.next = temp
     },
   }
