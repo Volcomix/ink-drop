@@ -24,8 +24,8 @@ const arrays = {
 }
 const buffer = twgl.createBufferInfoFromArrays(gl, arrays)
 
-const dye = createField()
-const velocity = createField()
+const dye = createField(gl.RGBA16F)
+const velocity = createField(gl.RG16F)
 
 let previousTime = Date.now()
 
