@@ -4,7 +4,7 @@ import { hideStats, showStats } from './stats'
 const config = {
   stats: true,
   splatRadius: 64,
-  dyeColor: [0, 0, 1],
+  dyeColor: [16 / 255, 64 / 255, 1],
   field: 'dye' as 'dye' | 'velocity',
 }
 
