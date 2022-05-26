@@ -5,8 +5,11 @@ import gl from './gl'
 import mouse from './mouse'
 import advectFrag from './shaders/advect.frag'
 import baseVert from './shaders/base.vert'
+import clearFrag from './shaders/clear.frag'
+import divergenceFrag from './shaders/divergence.frag'
 import dyeFrag from './shaders/dye.frag'
 import jacobiFrag from './shaders/jacobi.frag'
+import pressureFrag from './shaders/pressure.frag'
 import splatFrag from './shaders/splat.frag'
 import velocityFrag from './shaders/velocity.frag'
 import { updateStats } from './stats'
@@ -14,11 +17,14 @@ import './style.css'
 
 twgl.addExtensionsToContext(gl)
 
+const clearProgram = twgl.createProgramInfo(gl, [baseVert, clearFrag])
 const advectProgram = twgl.createProgramInfo(gl, [baseVert, advectFrag])
 const jacobiProgram = twgl.createProgramInfo(gl, [baseVert, jacobiFrag])
 const splatProgram = twgl.createProgramInfo(gl, [baseVert, splatFrag])
+const divergenceProgram = twgl.createProgramInfo(gl, [baseVert, divergenceFrag])
 const dyeProgram = twgl.createProgramInfo(gl, [baseVert, dyeFrag])
 const velocityProgram = twgl.createProgramInfo(gl, [baseVert, velocityFrag])
+const pressureProgram = twgl.createProgramInfo(gl, [baseVert, pressureFrag])
 
 const arrays = {
   a_position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0],
@@ -28,6 +34,9 @@ const buffer = twgl.createBufferInfoFromArrays(gl, arrays)
 
 const dye = createField(gl.RGBA16F)
 const velocity = createField(gl.RG16F)
+const pressure = createField(gl.R16F)
+
+const divergence = twgl.createFramebufferInfo(gl, [{ internalFormat: gl.R16F }])
 
 let previousTime = Date.now()
 
@@ -43,11 +52,14 @@ function animate(time: number) {
   advect(timeStep)
   diffuse(timeStep)
   addForces(timeStep)
+  computePressure()
 
   if (config.field === 'dye') {
     renderDye()
-  } else {
+  } else if (config.field === 'velocity') {
     renderVelocity()
+  } else {
+    renderPressure()
   }
 
   requestAnimationFrame(animate)
@@ -146,6 +158,47 @@ function addForces(timeStep: number) {
   dye.swap()
 }
 
+function computePressure() {
+  twgl.bindFramebufferInfo(gl, divergence)
+
+  const divergenceUniforms = {
+    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_velocity: velocity.current.attachments[0],
+  }
+
+  gl.useProgram(divergenceProgram.program)
+  twgl.setBuffersAndAttributes(gl, divergenceProgram, buffer)
+  twgl.setUniforms(divergenceProgram, divergenceUniforms)
+  twgl.drawBufferInfo(gl, buffer)
+
+  twgl.bindFramebufferInfo(gl, pressure.current)
+  gl.useProgram(clearProgram.program)
+  twgl.setBuffersAndAttributes(gl, clearProgram, buffer)
+  twgl.drawBufferInfo(gl, buffer)
+
+  const jacobiUniforms = {
+    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_alpha: -1,
+    u_reciprocalBeta: 1 / 4,
+  }
+
+  gl.useProgram(jacobiProgram.program)
+  twgl.setBuffersAndAttributes(gl, jacobiProgram, buffer)
+  twgl.setUniforms(jacobiProgram, jacobiUniforms)
+
+  for (let i = 0; i < config.solverIterations; i++) {
+    const iterationUniforms = {
+      u_x: pressure.current.attachments[0],
+      u_b: divergence.attachments[0],
+    }
+    twgl.bindFramebufferInfo(gl, pressure.next)
+    twgl.setUniforms(jacobiProgram, iterationUniforms)
+    twgl.drawBufferInfo(gl, buffer)
+
+    pressure.swap()
+  }
+}
+
 function renderDye() {
   twgl.bindFramebufferInfo(gl, null)
 
@@ -170,5 +223,18 @@ function renderVelocity() {
   gl.useProgram(velocityProgram.program)
   twgl.setBuffersAndAttributes(gl, velocityProgram, buffer)
   twgl.setUniforms(velocityProgram, uniforms)
+  twgl.drawBufferInfo(gl, buffer)
+}
+
+function renderPressure() {
+  twgl.bindFramebufferInfo(gl, null)
+
+  const uniforms = {
+    u_pressure: pressure.current.attachments[0],
+  }
+
+  gl.useProgram(pressureProgram.program)
+  twgl.setBuffersAndAttributes(gl, pressureProgram, buffer)
+  twgl.setUniforms(pressureProgram, uniforms)
   twgl.drawBufferInfo(gl, buffer)
 }
