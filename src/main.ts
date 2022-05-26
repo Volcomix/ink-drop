@@ -8,6 +8,7 @@ import baseVert from './shaders/base.vert'
 import clearFrag from './shaders/clear.frag'
 import divergenceFrag from './shaders/divergence.frag'
 import dyeFrag from './shaders/dye.frag'
+import gradientFrag from './shaders/gradient.frag'
 import jacobiFrag from './shaders/jacobi.frag'
 import pressureFrag from './shaders/pressure.frag'
 import splatFrag from './shaders/splat.frag'
@@ -22,6 +23,7 @@ const advectProgram = twgl.createProgramInfo(gl, [baseVert, advectFrag])
 const jacobiProgram = twgl.createProgramInfo(gl, [baseVert, jacobiFrag])
 const splatProgram = twgl.createProgramInfo(gl, [baseVert, splatFrag])
 const divergenceProgram = twgl.createProgramInfo(gl, [baseVert, divergenceFrag])
+const gradientProgram = twgl.createProgramInfo(gl, [baseVert, gradientFrag])
 const dyeProgram = twgl.createProgramInfo(gl, [baseVert, dyeFrag])
 const velocityProgram = twgl.createProgramInfo(gl, [baseVert, velocityFrag])
 const pressureProgram = twgl.createProgramInfo(gl, [baseVert, pressureFrag])
@@ -53,6 +55,7 @@ function animate(time: number) {
   diffuse(timeStep)
   addForces(timeStep)
   computePressure()
+  subtractPressureGradient()
 
   if (config.field === 'dye') {
     renderDye()
@@ -197,6 +200,23 @@ function computePressure() {
 
     pressure.swap()
   }
+}
+
+function subtractPressureGradient() {
+  twgl.bindFramebufferInfo(gl, velocity.next)
+
+  const uniforms = {
+    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_pressure: pressure.current.attachments[0],
+    u_velocity: velocity.current.attachments[0],
+  }
+
+  gl.useProgram(gradientProgram.program)
+  twgl.setBuffersAndAttributes(gl, gradientProgram, buffer)
+  twgl.setUniforms(gradientProgram, uniforms)
+  twgl.drawBufferInfo(gl, buffer)
+
+  velocity.swap()
 }
 
 function renderDye() {
