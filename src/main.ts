@@ -5,6 +5,7 @@ import config from './config'
 import dyeFrag from './dye.frag'
 import { createField } from './field'
 import gl from './gl'
+import jacobiFrag from './jacobi.frag'
 import mouse from './mouse'
 import splatFrag from './splat.frag'
 import { updateStats } from './stats'
@@ -14,6 +15,7 @@ import velocityFrag from './velocity.frag'
 twgl.addExtensionsToContext(gl)
 
 const advectProgram = twgl.createProgramInfo(gl, [baseVert, advectFrag])
+const jacobiProgram = twgl.createProgramInfo(gl, [baseVert, jacobiFrag])
 const splatProgram = twgl.createProgramInfo(gl, [baseVert, splatFrag])
 const dyeProgram = twgl.createProgramInfo(gl, [baseVert, dyeFrag])
 const velocityProgram = twgl.createProgramInfo(gl, [baseVert, velocityFrag])
@@ -39,6 +41,7 @@ function animate(time: number) {
   previousTime = time
 
   advect(timeStep)
+  diffuse(timeStep)
 
   if (mouse.isDown) {
     splat(timeStep)
@@ -79,6 +82,36 @@ function advect(timeStep: number) {
 
   velocity.swap()
   dye.swap()
+}
+
+function diffuse(timeStep: number) {
+  if (config.viscosity === 0) {
+    return
+  }
+
+  const alpha = 1 / (0.001 * config.viscosity * timeStep)
+
+  const uniforms = {
+    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_alpha: alpha,
+    u_reciprocalBeta: 1 / (4 + alpha),
+  }
+
+  gl.useProgram(jacobiProgram.program)
+  twgl.setBuffersAndAttributes(gl, jacobiProgram, buffer)
+  twgl.setUniforms(jacobiProgram, uniforms)
+
+  for (let i = 0; i < config.solverIterations; i++) {
+    const iterationUniforms = {
+      u_x: velocity.current.attachments[0],
+      u_b: velocity.current.attachments[0],
+    }
+    twgl.bindFramebufferInfo(gl, velocity.next)
+    twgl.setUniforms(jacobiProgram, iterationUniforms)
+    twgl.drawBufferInfo(gl, buffer)
+
+    velocity.swap()
+  }
 }
 
 function splat(timeStep: number) {
@@ -129,7 +162,7 @@ function renderVelocity() {
   twgl.bindFramebufferInfo(gl, null)
 
   const uniforms = {
-    u_scale: 4 / Math.max(gl.canvas.width, gl.canvas.height),
+    u_scale: 64 / Math.max(gl.canvas.width, gl.canvas.height),
     u_velocity: velocity.current.attachments[0],
   }
 
