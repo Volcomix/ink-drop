@@ -200,41 +200,35 @@ function computePressure() {
 }
 
 function renderDye() {
-  twgl.bindFramebufferInfo(gl, null)
-
   const uniforms = {
     u_dye: dye.current.attachments[0],
   }
-
-  gl.useProgram(dyeProgram.program)
-  twgl.setBuffersAndAttributes(gl, dyeProgram, buffer)
-  twgl.setUniforms(dyeProgram, uniforms)
-  twgl.drawBufferInfo(gl, buffer)
+  render(dyeProgram, uniforms)
 }
 
 function renderVelocity() {
-  twgl.bindFramebufferInfo(gl, null)
-
   const uniforms = {
     u_scale: 64 / Math.max(gl.canvas.width, gl.canvas.height),
     u_velocity: velocity.current.attachments[0],
   }
-
-  gl.useProgram(velocityProgram.program)
-  twgl.setBuffersAndAttributes(gl, velocityProgram, buffer)
-  twgl.setUniforms(velocityProgram, uniforms)
-  twgl.drawBufferInfo(gl, buffer)
+  render(velocityProgram, uniforms)
 }
 
 function renderPressure() {
-  twgl.bindFramebufferInfo(gl, null)
-
   const uniforms = {
     u_pressure: pressure.current.attachments[0],
   }
+  render(pressureProgram, uniforms)
+}
 
-  gl.useProgram(pressureProgram.program)
-  twgl.setBuffersAndAttributes(gl, pressureProgram, buffer)
-  twgl.setUniforms(pressureProgram, uniforms)
+function render(
+  programInfo: twgl.ProgramInfo,
+  uniforms: { [key: string]: any },
+) {
+  twgl.bindFramebufferInfo(gl, null)
+
+  gl.useProgram(programInfo.program)
+  twgl.setBuffersAndAttributes(gl, programInfo, buffer)
+  twgl.setUniforms(programInfo, uniforms)
   twgl.drawBufferInfo(gl, buffer)
 }
