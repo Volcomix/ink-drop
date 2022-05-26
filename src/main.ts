@@ -42,10 +42,7 @@ function animate(time: number) {
 
   advect(timeStep)
   diffuse(timeStep)
-
-  if (mouse.isDown) {
-    splat(timeStep)
-  }
+  addForces(timeStep)
 
   if (config.field === 'dye') {
     renderDye()
@@ -114,7 +111,11 @@ function diffuse(timeStep: number) {
   }
 }
 
-function splat(timeStep: number) {
+function addForces(timeStep: number) {
+  if (!mouse.isDown) {
+    return
+  }
+
   const uniforms = {
     u_resolution: [gl.canvas.width, gl.canvas.height],
     u_mousePosition: mouse.position,
