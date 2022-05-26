@@ -25,7 +25,7 @@ gui.add(config, 'stats').onChange((stats: boolean) => {
 gui.addColor(config, 'dyeColor')
 gui.add(config, 'splatRadius', 8, 256, 1)
 gui.add(config, 'viscosity', 0, 5, 0.1)
-gui.add(config, 'solverIterations', 1, 100, 1)
+gui.add(config, 'solverIterations', 1, 200, 1)
 gui.add(config, 'field', ['dye', 'velocity', 'pressure'])
 
 export default config
