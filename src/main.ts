@@ -1,16 +1,16 @@
 import * as twgl from 'twgl.js'
-import advectFrag from './advect.frag'
-import baseVert from './base.vert'
 import config from './config'
-import dyeFrag from './dye.frag'
 import { createField } from './field'
 import gl from './gl'
-import jacobiFrag from './jacobi.frag'
 import mouse from './mouse'
-import splatFrag from './splat.frag'
+import advectFrag from './shaders/advect.frag'
+import baseVert from './shaders/base.vert'
+import dyeFrag from './shaders/dye.frag'
+import jacobiFrag from './shaders/jacobi.frag'
+import splatFrag from './shaders/splat.frag'
+import velocityFrag from './shaders/velocity.frag'
 import { updateStats } from './stats'
 import './style.css'
-import velocityFrag from './velocity.frag'
 
 twgl.addExtensionsToContext(gl)
 
