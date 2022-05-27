@@ -13,6 +13,8 @@ import jacobiFrag from './shaders/jacobi.frag'
 import pressureFrag from './shaders/pressure.frag'
 import splatFrag from './shaders/splat.frag'
 import velocityFrag from './shaders/velocity.frag'
+import vorticityFrag from './shaders/vorticity.frag'
+import vorticityRotationFrag from './shaders/vorticityRotation.frag'
 import { updateStats } from './stats'
 import './style.css'
 
@@ -20,13 +22,18 @@ twgl.addExtensionsToContext(gl)
 
 const clearProgram = twgl.createProgramInfo(gl, [baseVert, clearFrag])
 const advectProgram = twgl.createProgramInfo(gl, [baseVert, advectFrag])
-const jacobiProgram = twgl.createProgramInfo(gl, [baseVert, jacobiFrag])
 const splatProgram = twgl.createProgramInfo(gl, [baseVert, splatFrag])
+const vorticityProgram = twgl.createProgramInfo(gl, [baseVert, vorticityFrag])
+const jacobiProgram = twgl.createProgramInfo(gl, [baseVert, jacobiFrag])
 const divergenceProgram = twgl.createProgramInfo(gl, [baseVert, divergenceFrag])
 const gradientProgram = twgl.createProgramInfo(gl, [baseVert, gradientFrag])
 const dyeProgram = twgl.createProgramInfo(gl, [baseVert, dyeFrag])
 const velocityProgram = twgl.createProgramInfo(gl, [baseVert, velocityFrag])
 const pressureProgram = twgl.createProgramInfo(gl, [baseVert, pressureFrag])
+const vorticityRotationProgram = twgl.createProgramInfo(gl, [
+  baseVert,
+  vorticityRotationFrag,
+])
 
 const arrays = {
   a_position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0],
@@ -38,6 +45,7 @@ const dye = createField(gl.RGBA16F)
 const velocity = createField(gl.RG16F)
 const pressure = createField(gl.R16F)
 
+const vorticity = twgl.createFramebufferInfo(gl, [{ internalFormat: gl.R16F }])
 const divergence = twgl.createFramebufferInfo(gl, [{ internalFormat: gl.R16F }])
 
 let previousTime = Date.now()
@@ -52,8 +60,9 @@ function animate(time: number) {
   previousTime = time
 
   advect(timeStep)
-  diffuse(timeStep)
   addForces(timeStep)
+  computeVorticity()
+  diffuse(timeStep)
   computePressure()
   subtractPressureGradient()
 
@@ -61,8 +70,10 @@ function animate(time: number) {
     renderDye()
   } else if (config.field === 'velocity') {
     renderVelocity()
-  } else {
+  } else if (config.field === 'pressure') {
     renderPressure()
+  } else {
+    renderVorticity()
   }
 
   requestAnimationFrame(animate)
@@ -94,36 +105,6 @@ function advect(timeStep: number) {
 
   velocity.swap()
   dye.swap()
-}
-
-function diffuse(timeStep: number) {
-  if (config.viscosity === 0) {
-    return
-  }
-
-  const alpha = 1 / (0.001 * config.viscosity * timeStep)
-
-  const uniforms = {
-    u_resolution: [gl.canvas.width, gl.canvas.height],
-    u_alpha: alpha,
-    u_reciprocalBeta: 1 / (4 + alpha),
-  }
-
-  gl.useProgram(jacobiProgram.program)
-  twgl.setBuffersAndAttributes(gl, jacobiProgram, buffer)
-  twgl.setUniforms(jacobiProgram, uniforms)
-
-  for (let i = 0; i < config.solverIterations; i++) {
-    const iterationUniforms = {
-      u_x: velocity.current.attachments[0],
-      u_b: velocity.current.attachments[0],
-    }
-    twgl.bindFramebufferInfo(gl, velocity.next)
-    twgl.setUniforms(jacobiProgram, iterationUniforms)
-    twgl.drawBufferInfo(gl, buffer)
-
-    velocity.swap()
-  }
 }
 
 function addForces(timeStep: number) {
@@ -159,6 +140,50 @@ function addForces(timeStep: number) {
 
   velocity.swap()
   dye.swap()
+}
+
+function computeVorticity() {
+  twgl.bindFramebufferInfo(gl, vorticity)
+
+  const uniforms = {
+    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_velocity: velocity.current.attachments[0],
+  }
+
+  gl.useProgram(vorticityProgram.program)
+  twgl.setBuffersAndAttributes(gl, vorticityProgram, buffer)
+  twgl.setUniforms(vorticityProgram, uniforms)
+  twgl.drawBufferInfo(gl, buffer)
+}
+
+function diffuse(timeStep: number) {
+  if (config.viscosity === 0) {
+    return
+  }
+
+  const alpha = 1 / (0.001 * config.viscosity * timeStep)
+
+  const uniforms = {
+    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_alpha: alpha,
+    u_reciprocalBeta: 1 / (4 + alpha),
+  }
+
+  gl.useProgram(jacobiProgram.program)
+  twgl.setBuffersAndAttributes(gl, jacobiProgram, buffer)
+  twgl.setUniforms(jacobiProgram, uniforms)
+
+  for (let i = 0; i < config.solverIterations; i++) {
+    const iterationUniforms = {
+      u_x: velocity.current.attachments[0],
+      u_b: velocity.current.attachments[0],
+    }
+    twgl.bindFramebufferInfo(gl, velocity.next)
+    twgl.setUniforms(jacobiProgram, iterationUniforms)
+    twgl.drawBufferInfo(gl, buffer)
+
+    velocity.swap()
+  }
 }
 
 function computePressure() {
@@ -239,6 +264,13 @@ function renderPressure() {
     u_pressure: pressure.current.attachments[0],
   }
   render(pressureProgram, uniforms)
+}
+
+function renderVorticity() {
+  const uniforms = {
+    u_vorticity: vorticity.attachments[0],
+  }
+  render(vorticityRotationProgram, uniforms)
 }
 
 function render(

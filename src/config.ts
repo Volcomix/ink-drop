@@ -7,7 +7,7 @@ const config = {
   splatRadius: 64,
   viscosity: 1,
   solverIterations: 50,
-  field: 'dye' as 'dye' | 'velocity' | 'pressure',
+  field: 'dye' as 'dye' | 'velocity' | 'pressure' | 'vorticity',
 }
 
 if (config.stats) {
@@ -26,6 +26,6 @@ gui.addColor(config, 'dyeColor')
 gui.add(config, 'splatRadius', 8, 256, 1)
 gui.add(config, 'viscosity', 0, 5, 0.1)
 gui.add(config, 'solverIterations', 1, 200, 1)
-gui.add(config, 'field', ['dye', 'velocity', 'pressure'])
+gui.add(config, 'field', ['dye', 'velocity', 'pressure', 'vorticity'])
 
 export default config
