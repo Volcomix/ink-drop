@@ -14,5 +14,6 @@
 - https://www.researchgate.net/publication/6704642_Advections_with_Significantly_Reduced_Dissipation_and_Diffusion
 - https://www.researchgate.net/publication/241622956_Interactive_visual_simulation_of_dynamic_ink_diffusion_effects
 - https://www.researchgate.net/publication/272193327_Simulating_Drops_Settling_in_a_Still_Liquid
+- https://github.com/mharrys/fluids-2d
 - https://github.com/PavelDoGreat/WebGL-Fluid-Simulation
 - https://github.com/haxiomic/GPU-Fluid-Experiments
