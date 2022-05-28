@@ -13,8 +13,8 @@ uniform sampler2D u_currentQuantity;
 out vec4 outColor;
 
 void main() {
-  vec2 uv = v_texCoord - texture(u_velocity, v_texCoord).xy * u_scale;
-  outColor = texture(u_currentQuantity, uv);
+  vec2 position = v_texCoord - texture(u_velocity, v_texCoord).xy * u_scale;
+  outColor = texture(u_currentQuantity, position);
 }
 
 `
