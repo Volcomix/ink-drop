@@ -14,6 +14,7 @@ import pressureFrag from './shaders/pressure.frag'
 import splatFrag from './shaders/splat.frag'
 import velocityFrag from './shaders/velocity.frag'
 import vorticityFrag from './shaders/vorticity.frag'
+import vorticityForceFrag from './shaders/vorticityForce.frag'
 import vorticityRotationFrag from './shaders/vorticityRotation.frag'
 import { updateStats } from './stats'
 import './style.css'
@@ -24,6 +25,10 @@ const clearProgram = twgl.createProgramInfo(gl, [baseVert, clearFrag])
 const advectProgram = twgl.createProgramInfo(gl, [baseVert, advectFrag])
 const splatProgram = twgl.createProgramInfo(gl, [baseVert, splatFrag])
 const vorticityProgram = twgl.createProgramInfo(gl, [baseVert, vorticityFrag])
+const vorticityForceProgram = twgl.createProgramInfo(gl, [
+  baseVert,
+  vorticityForceFrag,
+])
 const jacobiProgram = twgl.createProgramInfo(gl, [baseVert, jacobiFrag])
 const divergenceProgram = twgl.createProgramInfo(gl, [baseVert, divergenceFrag])
 const gradientProgram = twgl.createProgramInfo(gl, [baseVert, gradientFrag])
@@ -61,7 +66,7 @@ function animate(time: number) {
 
   advect(timeStep)
   addForces(timeStep)
-  computeVorticity()
+  computeVorticity(timeStep)
   diffuse(timeStep)
   computePressure()
   subtractPressureGradient()
@@ -142,18 +147,34 @@ function addForces(timeStep: number) {
   dye.swap()
 }
 
-function computeVorticity() {
+function computeVorticity(timeStep: number) {
   twgl.bindFramebufferInfo(gl, vorticity)
 
-  const uniforms = {
+  const vorticityUniforms = {
     u_resolution: [gl.canvas.width, gl.canvas.height],
     u_velocity: velocity.current.attachments[0],
   }
 
   gl.useProgram(vorticityProgram.program)
   twgl.setBuffersAndAttributes(gl, vorticityProgram, buffer)
-  twgl.setUniforms(vorticityProgram, uniforms)
+  twgl.setUniforms(vorticityProgram, vorticityUniforms)
   twgl.drawBufferInfo(gl, buffer)
+
+  twgl.bindFramebufferInfo(gl, velocity.next)
+
+  const vorticityForceUniforms = {
+    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_scale: config.vorticity * timeStep,
+    u_vorticity: vorticity.attachments[0],
+    u_velocity: velocity.current.attachments[0],
+  }
+
+  gl.useProgram(vorticityForceProgram.program)
+  twgl.setBuffersAndAttributes(gl, vorticityForceProgram, buffer)
+  twgl.setUniforms(vorticityForceProgram, vorticityForceUniforms)
+  twgl.drawBufferInfo(gl, buffer)
+
+  velocity.swap()
 }
 
 function diffuse(timeStep: number) {
