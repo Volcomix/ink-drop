@@ -1,6 +1,6 @@
 import * as twgl from 'twgl.js'
 import config from './config'
-import { createField } from './field'
+import { createField, createSwappableField } from './field'
 import gl from './gl'
 import mouse from './mouse'
 import advectFrag from './shaders/advect.frag'
@@ -46,12 +46,11 @@ const arrays = {
 }
 const buffer = twgl.createBufferInfoFromArrays(gl, arrays)
 
-const dye = createField(gl.RGBA16F)
-const velocity = createField(gl.RG16F)
-const pressure = createField(gl.R16F)
-
-const vorticity = twgl.createFramebufferInfo(gl, [{ internalFormat: gl.R16F }])
-const divergence = twgl.createFramebufferInfo(gl, [{ internalFormat: gl.R16F }])
+const dye = createSwappableField(gl.RGBA16F)
+const velocity = createSwappableField(gl.RG16F)
+const pressure = createSwappableField(gl.R16F)
+const vorticity = createField(gl.R16F)
+const divergence = createField(gl.R16F)
 
 let previousTime = Date.now()
 
@@ -59,7 +58,13 @@ requestAnimationFrame(animate)
 
 function animate(time: number) {
   updateStats()
-  twgl.resizeCanvasToDisplaySize(gl.canvas)
+  if (twgl.resizeCanvasToDisplaySize(gl.canvas)) {
+    dye.resize()
+    velocity.resize()
+    pressure.resize()
+    vorticity.resize()
+    divergence.resize()
+  }
 
   const timeStep = (time - previousTime) * 0.001
   previousTime = time
@@ -86,7 +91,7 @@ function animate(time: number) {
 
 function advect(timeStep: number) {
   const uniforms = {
-    u_scale: [timeStep / gl.canvas.width, timeStep / gl.canvas.height],
+    u_timeStep: timeStep,
     u_velocity: velocity.current.attachments[0],
   }
 
@@ -128,7 +133,11 @@ function addForces(timeStep: number) {
   twgl.setUniforms(splatProgram, uniforms)
 
   const velocityUniforms = {
-    u_quantity: [mouse.movement[0] / timeStep, mouse.movement[1] / timeStep, 0],
+    u_quantity: [
+      mouse.movement[0] / gl.canvas.width / timeStep,
+      mouse.movement[1] / gl.canvas.height / timeStep,
+      0,
+    ],
     u_currentQuantity: velocity.current.attachments[0],
   }
   twgl.bindFramebufferInfo(gl, velocity.next)
@@ -148,10 +157,10 @@ function addForces(timeStep: number) {
 }
 
 function computeVorticity(timeStep: number) {
-  twgl.bindFramebufferInfo(gl, vorticity)
+  twgl.bindFramebufferInfo(gl, vorticity.current)
 
   const vorticityUniforms = {
-    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_gridSize: [velocity.current.width, velocity.current.height],
     u_velocity: velocity.current.attachments[0],
   }
 
@@ -163,9 +172,9 @@ function computeVorticity(timeStep: number) {
   twgl.bindFramebufferInfo(gl, velocity.next)
 
   const vorticityForceUniforms = {
-    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_gridSize: [vorticity.current.width, vorticity.current.height],
     u_scale: config.vorticity * timeStep,
-    u_vorticity: vorticity.attachments[0],
+    u_vorticity: vorticity.current.attachments[0],
     u_velocity: velocity.current.attachments[0],
   }
 
@@ -185,7 +194,7 @@ function diffuse(timeStep: number) {
   const alpha = 1 / (0.001 * config.viscosity * timeStep)
 
   const uniforms = {
-    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_gridSize: [velocity.current.width, velocity.current.height],
     u_alpha: alpha,
     u_reciprocalBeta: 1 / (4 + alpha),
   }
@@ -208,10 +217,10 @@ function diffuse(timeStep: number) {
 }
 
 function computePressure() {
-  twgl.bindFramebufferInfo(gl, divergence)
+  twgl.bindFramebufferInfo(gl, divergence.current)
 
   const divergenceUniforms = {
-    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_gridSize: [velocity.current.width, velocity.current.height],
     u_velocity: velocity.current.attachments[0],
   }
 
@@ -226,7 +235,7 @@ function computePressure() {
   twgl.drawBufferInfo(gl, buffer)
 
   const jacobiUniforms = {
-    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_gridSize: [pressure.current.width, pressure.current.height],
     u_alpha: -1,
     u_reciprocalBeta: 1 / 4,
   }
@@ -238,7 +247,7 @@ function computePressure() {
   for (let i = 0; i < config.solverIterations; i++) {
     const iterationUniforms = {
       u_x: pressure.current.attachments[0],
-      u_b: divergence.attachments[0],
+      u_b: divergence.current.attachments[0],
     }
     twgl.bindFramebufferInfo(gl, pressure.next)
     twgl.setUniforms(jacobiProgram, iterationUniforms)
@@ -252,7 +261,7 @@ function subtractPressureGradient() {
   twgl.bindFramebufferInfo(gl, velocity.next)
 
   const uniforms = {
-    u_resolution: [gl.canvas.width, gl.canvas.height],
+    u_gridSize: [pressure.current.width, pressure.current.height],
     u_pressure: pressure.current.attachments[0],
     u_velocity: velocity.current.attachments[0],
   }
@@ -274,7 +283,6 @@ function renderDye() {
 
 function renderVelocity() {
   const uniforms = {
-    u_scale: 64 / Math.max(gl.canvas.width, gl.canvas.height),
     u_velocity: velocity.current.attachments[0],
   }
   render(velocityProgram, uniforms)
@@ -289,7 +297,7 @@ function renderPressure() {
 
 function renderVorticity() {
   const uniforms = {
-    u_vorticity: vorticity.attachments[0],
+    u_vorticity: vorticity.current.attachments[0],
   }
   render(vorticityRotationProgram, uniforms)
 }

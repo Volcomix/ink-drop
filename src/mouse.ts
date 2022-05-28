@@ -23,7 +23,7 @@ gl.canvas.addEventListener('mouseup', () => {
 })
 
 function updateMousePosition(event: MouseEvent) {
-  mouse.position = [event.offsetX, gl.canvas.height - event.offsetY]
+  mouse.position = [event.clientX, gl.canvas.height - event.clientY]
   mouse.movement = [event.movementX, -event.movementY]
 }
 

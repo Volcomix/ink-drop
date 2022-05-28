@@ -6,7 +6,7 @@ precision highp float;
 
 in vec2 v_texCoord;
 
-uniform vec2 u_resolution;
+uniform vec2 u_gridSize;
 uniform float u_scale;
 uniform sampler2D u_vorticity;
 uniform sampler2D u_velocity;
@@ -16,10 +16,10 @@ out vec2 outColor;
 const float epsilon = 2.4414e-4; // 2^-12;
 
 void main() {
-  float vL = texture(u_vorticity, v_texCoord - vec2(1, 0) / u_resolution).r;
-  float vR = texture(u_vorticity, v_texCoord + vec2(1, 0) / u_resolution).r;
-  float vB = texture(u_vorticity, v_texCoord - vec2(0, 1) / u_resolution).r;
-  float vT = texture(u_vorticity, v_texCoord + vec2(0, 1) / u_resolution).r;
+  float vL = texture(u_vorticity, v_texCoord - vec2(1, 0) / u_gridSize).r;
+  float vR = texture(u_vorticity, v_texCoord + vec2(1, 0) / u_gridSize).r;
+  float vB = texture(u_vorticity, v_texCoord - vec2(0, 1) / u_gridSize).r;
+  float vT = texture(u_vorticity, v_texCoord + vec2(0, 1) / u_gridSize).r;
 
   float vC = texture(u_vorticity, v_texCoord).r;
 
