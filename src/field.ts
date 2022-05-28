@@ -8,6 +8,10 @@ export function createField(internalFormat: number) {
   return {
     current: twgl.createFramebufferInfo(gl, attachments),
 
+    get size() {
+      return [this.current.width, this.current.height]
+    },
+
     resize() {
       const { width, height } = getGridSize()
       twgl.resizeFramebufferInfo(gl, this.current, attachments, width, height)
@@ -21,6 +25,10 @@ export function createSwappableField(internalFormat: number) {
   return {
     current: twgl.createFramebufferInfo(gl, attachments),
     next: twgl.createFramebufferInfo(gl, attachments),
+
+    get size() {
+      return [this.current.width, this.current.height]
+    },
 
     resize() {
       const { width, height } = getGridSize()

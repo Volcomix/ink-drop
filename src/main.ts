@@ -163,7 +163,7 @@ function computeVorticity(timeStep: number) {
   twgl.bindFramebufferInfo(gl, vorticity.current)
 
   const vorticityUniforms = {
-    u_gridSize: [velocity.current.width, velocity.current.height],
+    u_gridSize: velocity.size,
     u_velocity: velocity.current.attachments[0],
   }
 
@@ -175,7 +175,7 @@ function computeVorticity(timeStep: number) {
   twgl.bindFramebufferInfo(gl, velocity.next)
 
   const vorticityForceUniforms = {
-    u_gridSize: [vorticity.current.width, vorticity.current.height],
+    u_gridSize: vorticity.size,
     u_scale: config.vorticity * timeStep,
     u_vorticity: vorticity.current.attachments[0],
     u_velocity: velocity.current.attachments[0],
@@ -197,7 +197,7 @@ function diffuse(timeStep: number) {
   const alpha = 1 / (0.001 * config.viscosity * timeStep)
 
   const uniforms = {
-    u_gridSize: [velocity.current.width, velocity.current.height],
+    u_gridSize: velocity.size,
     u_alpha: alpha,
     u_reciprocalBeta: 1 / (4 + alpha),
   }
@@ -223,7 +223,7 @@ function computePressure() {
   twgl.bindFramebufferInfo(gl, divergence.current)
 
   const divergenceUniforms = {
-    u_gridSize: [velocity.current.width, velocity.current.height],
+    u_gridSize: velocity.size,
     u_velocity: velocity.current.attachments[0],
   }
 
@@ -238,7 +238,7 @@ function computePressure() {
   twgl.drawBufferInfo(gl, buffer)
 
   const jacobiUniforms = {
-    u_gridSize: [pressure.current.width, pressure.current.height],
+    u_gridSize: pressure.size,
     u_alpha: -1,
     u_reciprocalBeta: 1 / 4,
   }
@@ -264,7 +264,7 @@ function subtractPressureGradient() {
   twgl.bindFramebufferInfo(gl, velocity.next)
 
   const uniforms = {
-    u_gridSize: [pressure.current.width, pressure.current.height],
+    u_gridSize: pressure.size,
     u_pressure: pressure.current.attachments[0],
     u_velocity: velocity.current.attachments[0],
   }
@@ -286,6 +286,10 @@ function renderDye() {
 
 function renderVelocity() {
   const uniforms = {
+    u_scale: [
+      2 * (velocity.size[0] / config.gridResolution),
+      2 * (velocity.size[1] / config.gridResolution),
+    ],
     u_velocity: velocity.current.attachments[0],
   }
   render(velocityProgram, uniforms)
