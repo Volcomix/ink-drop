@@ -69,12 +69,15 @@ function animate(time: number) {
   const timeStep = (time - previousTime) * 0.001
   previousTime = time
 
-  advect(timeStep)
   addForces(timeStep)
-  computeVorticity(timeStep)
-  diffuse(timeStep)
-  computePressure()
-  subtractPressureGradient()
+
+  if (!config.pause) {
+    advect(timeStep)
+    computeVorticity(timeStep)
+    diffuse(timeStep)
+    computePressure()
+    subtractPressureGradient()
+  }
 
   if (config.field === 'dye') {
     renderDye()

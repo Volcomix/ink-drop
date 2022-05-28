@@ -10,6 +10,7 @@ const config = {
   vorticity: 1,
   gridResolution: 512,
   solverIterations: 50,
+  pause: false,
   field: 'dye' as 'dye' | 'velocity' | 'pressure' | 'vorticity',
 }
 
@@ -34,6 +35,7 @@ gui.add(config, 'gridResolution', 32, 2048, 1).onFinishChange(() => {
   gl.canvas.height = 0
 })
 gui.add(config, 'solverIterations', 1, 200, 1)
+gui.add(config, 'pause')
 gui.add(config, 'field', ['dye', 'velocity', 'pressure', 'vorticity'])
 
 export default config
