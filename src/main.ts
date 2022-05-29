@@ -4,11 +4,12 @@ import { createField, createSwappableField } from './field'
 import gl from './gl'
 import mouse from './mouse'
 import advectFrag from './shaders/advect.frag'
-import baseVert from './shaders/base.vert'
 import clearFrag from './shaders/clear.frag'
 import divergenceFrag from './shaders/divergence.frag'
 import dyeFrag from './shaders/dye.frag'
+import fullVert from './shaders/full.vert'
 import gradientFrag from './shaders/gradient.frag'
+import interiorVert from './shaders/interior.vert'
 import jacobiFrag from './shaders/jacobi.frag'
 import pressureFrag from './shaders/pressure.frag'
 import splatFrag from './shaders/splat.frag'
@@ -21,22 +22,28 @@ import './style.css'
 
 twgl.addExtensionsToContext(gl)
 
-const clearProgram = twgl.createProgramInfo(gl, [baseVert, clearFrag])
-const advectProgram = twgl.createProgramInfo(gl, [baseVert, advectFrag])
-const splatProgram = twgl.createProgramInfo(gl, [baseVert, splatFrag])
-const vorticityProgram = twgl.createProgramInfo(gl, [baseVert, vorticityFrag])
+const clearProgram = twgl.createProgramInfo(gl, [fullVert, clearFrag])
+const advectProgram = twgl.createProgramInfo(gl, [interiorVert, advectFrag])
+const splatProgram = twgl.createProgramInfo(gl, [interiorVert, splatFrag])
+const vorticityProgram = twgl.createProgramInfo(gl, [
+  interiorVert,
+  vorticityFrag,
+])
 const vorticityForceProgram = twgl.createProgramInfo(gl, [
-  baseVert,
+  interiorVert,
   vorticityForceFrag,
 ])
-const jacobiProgram = twgl.createProgramInfo(gl, [baseVert, jacobiFrag])
-const divergenceProgram = twgl.createProgramInfo(gl, [baseVert, divergenceFrag])
-const gradientProgram = twgl.createProgramInfo(gl, [baseVert, gradientFrag])
-const dyeProgram = twgl.createProgramInfo(gl, [baseVert, dyeFrag])
-const velocityProgram = twgl.createProgramInfo(gl, [baseVert, velocityFrag])
-const pressureProgram = twgl.createProgramInfo(gl, [baseVert, pressureFrag])
+const jacobiProgram = twgl.createProgramInfo(gl, [interiorVert, jacobiFrag])
+const divergenceProgram = twgl.createProgramInfo(gl, [
+  interiorVert,
+  divergenceFrag,
+])
+const gradientProgram = twgl.createProgramInfo(gl, [interiorVert, gradientFrag])
+const dyeProgram = twgl.createProgramInfo(gl, [fullVert, dyeFrag])
+const velocityProgram = twgl.createProgramInfo(gl, [fullVert, velocityFrag])
+const pressureProgram = twgl.createProgramInfo(gl, [fullVert, pressureFrag])
 const vorticityRotationProgram = twgl.createProgramInfo(gl, [
-  baseVert,
+  fullVert,
   vorticityRotationFrag,
 ])
 
@@ -108,6 +115,7 @@ function addForces(timeStep: number) {
   twgl.setUniforms(splatProgram, uniforms)
 
   const velocityUniforms = {
+    u_gridSize: velocity.size,
     u_quantity: [
       velocity.size[0] * (mouse.movement[0] / gl.canvas.width / timeStep),
       velocity.size[1] * (mouse.movement[1] / gl.canvas.height / timeStep),
@@ -120,6 +128,7 @@ function addForces(timeStep: number) {
   twgl.drawBufferInfo(gl, buffer)
 
   const dyeUniforms = {
+    u_gridSize: dye.size,
     u_quantity: config.dyeColor,
     u_currentQuantity: dye.current.attachments[0],
   }
@@ -142,6 +151,7 @@ function advect(timeStep: number) {
   twgl.setUniforms(advectProgram, uniforms)
 
   const velocityUniforms = {
+    u_gridSize: velocity.size,
     u_currentQuantity: velocity.current.attachments[0],
   }
   twgl.bindFramebufferInfo(gl, velocity.next)
@@ -149,6 +159,7 @@ function advect(timeStep: number) {
   twgl.drawBufferInfo(gl, buffer)
 
   const dyeUniforms = {
+    u_gridSize: dye.size,
     u_currentQuantity: dye.current.attachments[0],
   }
   twgl.bindFramebufferInfo(gl, dye.next)
