@@ -7,7 +7,7 @@ const config = {
   dyeColor: [0, 0.2, 0.54],
   splatRadius: 32,
   viscosity: 0,
-  vorticity: 1.5,
+  vorticity: 0.25,
   gridResolution: 512,
   solverIterations: 50,
   field: 'dye' as 'dye' | 'velocity' | 'pressure' | 'vorticity',
