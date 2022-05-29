@@ -1,8 +1,10 @@
-# [WIP] Ink Drop
+# Ink Drop
 
 > Ink drop simulation and rendering in real-time.
 
 :point_right: https://volcomix.github.io/ink-drop
+
+[![](./screenshot.png)](https://volcomix.github.io/ink-drop)
 
 ## References
 
