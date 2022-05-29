@@ -10,8 +10,8 @@ const config = {
   vorticity: 1.5,
   gridResolution: 512,
   solverIterations: 50,
-  pause: false,
   field: 'dye' as 'dye' | 'velocity' | 'pressure' | 'vorticity',
+  pause: false,
   reset: () => {
     gl.canvas.width = 0
     gl.canvas.height = 0
@@ -36,8 +36,8 @@ gui.add(config, 'viscosity', 0, 0.005, 0.0001)
 gui.add(config, 'vorticity', 0, 10, 0.1)
 gui.add(config, 'gridResolution', 32, 2048, 1).onFinishChange(config.reset)
 gui.add(config, 'solverIterations', 1, 200, 1)
-gui.add(config, 'pause')
 gui.add(config, 'field', ['dye', 'velocity', 'pressure', 'vorticity'])
+gui.add(config, 'pause')
 gui.add(config, 'reset')
 
 export default config
