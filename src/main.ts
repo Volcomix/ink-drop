@@ -194,7 +194,7 @@ function diffuse(timeStep: number) {
     return
   }
 
-  const alpha = 1 / (0.001 * config.viscosity * timeStep)
+  const alpha = 1 / (config.viscosity * timeStep)
 
   const uniforms = {
     u_gridSize: velocity.size,

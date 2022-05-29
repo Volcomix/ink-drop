@@ -4,10 +4,10 @@ import { hideStats, showStats } from './stats'
 
 const config = {
   stats: true,
-  dyeColor: [0, 0.3, 1],
-  splatRadius: 64,
-  viscosity: 1,
-  vorticity: 1,
+  dyeColor: [0, 0.2, 0.54],
+  splatRadius: 32,
+  viscosity: 0,
+  vorticity: 1.5,
   gridResolution: 512,
   solverIterations: 50,
   pause: false,
@@ -28,7 +28,7 @@ gui.add(config, 'stats').onChange((stats: boolean) => {
 })
 gui.addColor(config, 'dyeColor')
 gui.add(config, 'splatRadius', 8, 256, 1)
-gui.add(config, 'viscosity', 0, 10, 0.1)
+gui.add(config, 'viscosity', 0, 0.005, 0.0001)
 gui.add(config, 'vorticity', 0, 10, 0.1)
 gui.add(config, 'gridResolution', 32, 2048, 1).onFinishChange(() => {
   gl.canvas.width = 0
