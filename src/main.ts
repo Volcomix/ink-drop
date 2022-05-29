@@ -7,11 +7,11 @@ import advectFrag from './shaders/advect.frag'
 import clearFrag from './shaders/clear.frag'
 import divergenceFrag from './shaders/divergence.frag'
 import dyeFrag from './shaders/dye.frag'
-import fullVert from './shaders/full.vert'
 import gradientFrag from './shaders/gradient.frag'
 import interiorVert from './shaders/interior.vert'
 import jacobiFrag from './shaders/jacobi.frag'
 import pressureFrag from './shaders/pressure.frag'
+import renderVert from './shaders/render.vert'
 import splatFrag from './shaders/splat.frag'
 import velocityFrag from './shaders/velocity.frag'
 import vorticityFrag from './shaders/vorticity.frag'
@@ -22,7 +22,7 @@ import './style.css'
 
 twgl.addExtensionsToContext(gl)
 
-const clearProgram = twgl.createProgramInfo(gl, [fullVert, clearFrag])
+const clearProgram = twgl.createProgramInfo(gl, [renderVert, clearFrag])
 const advectProgram = twgl.createProgramInfo(gl, [interiorVert, advectFrag])
 const splatProgram = twgl.createProgramInfo(gl, [interiorVert, splatFrag])
 const vorticityProgram = twgl.createProgramInfo(gl, [
@@ -39,11 +39,11 @@ const divergenceProgram = twgl.createProgramInfo(gl, [
   divergenceFrag,
 ])
 const gradientProgram = twgl.createProgramInfo(gl, [interiorVert, gradientFrag])
-const dyeProgram = twgl.createProgramInfo(gl, [fullVert, dyeFrag])
-const velocityProgram = twgl.createProgramInfo(gl, [fullVert, velocityFrag])
-const pressureProgram = twgl.createProgramInfo(gl, [fullVert, pressureFrag])
+const dyeProgram = twgl.createProgramInfo(gl, [renderVert, dyeFrag])
+const velocityProgram = twgl.createProgramInfo(gl, [renderVert, velocityFrag])
+const pressureProgram = twgl.createProgramInfo(gl, [renderVert, pressureFrag])
 const vorticityRotationProgram = twgl.createProgramInfo(gl, [
-  fullVert,
+  renderVert,
   vorticityRotationFrag,
 ])
 
@@ -290,6 +290,7 @@ function subtractPressureGradient() {
 
 function renderDye() {
   const uniforms = {
+    u_gridSize: dye.size,
     u_dye: dye.current.attachments[0],
   }
   render(dyeProgram, uniforms)
@@ -297,6 +298,7 @@ function renderDye() {
 
 function renderVelocity() {
   const uniforms = {
+    u_gridSize: velocity.size,
     u_scale: [8 / config.gridResolution, 8 / config.gridResolution],
     u_velocity: velocity.current.attachments[0],
   }
@@ -305,6 +307,7 @@ function renderVelocity() {
 
 function renderPressure() {
   const uniforms = {
+    u_gridSize: pressure.size,
     u_pressure: pressure.current.attachments[0],
   }
   render(pressureProgram, uniforms)
@@ -312,6 +315,7 @@ function renderPressure() {
 
 function renderVorticity() {
   const uniforms = {
+    u_gridSize: vorticity.size,
     u_vorticity: vorticity.current.attachments[0],
   }
   render(vorticityRotationProgram, uniforms)
