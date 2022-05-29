@@ -286,7 +286,7 @@ function renderDye() {
 
 function renderVelocity() {
   const uniforms = {
-    u_scale: [4 / config.gridResolution, 4 / config.gridResolution],
+    u_scale: [8 / config.gridResolution, 8 / config.gridResolution],
     u_velocity: velocity.current.attachments[0],
   }
   render(velocityProgram, uniforms)
