@@ -4,6 +4,7 @@ import { hideStats, showStats } from './stats'
 
 const config = {
   stats: true,
+  dye: 'grid' as 'particles' | 'grid',
   dyeColor: [0, 0.2, 0.54],
   splatRadius: 32,
   viscosity: 0,
@@ -30,6 +31,7 @@ gui.add(config, 'stats').onChange((stats: boolean) => {
     hideStats()
   }
 })
+// gui.add(config, 'dye', ['particles', 'grid'])
 gui.addColor(config, 'dyeColor')
 gui.add(config, 'splatRadius', 8, 256, 1)
 gui.add(config, 'viscosity', 0, 0.005, 0.0001)

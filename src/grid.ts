@@ -2,7 +2,7 @@ import * as twgl from 'twgl.js'
 import config from './config'
 import gl from './gl'
 
-export function createField(internalFormat: number) {
+export function createGrid(internalFormat: number) {
   const attachments = [{ internalFormat }]
 
   return {
@@ -19,7 +19,7 @@ export function createField(internalFormat: number) {
   }
 }
 
-export function createSwappableField(internalFormat: number) {
+export function createSwappableGrid(internalFormat: number) {
   const attachments = [{ internalFormat }]
 
   return {
