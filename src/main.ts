@@ -41,7 +41,11 @@ const divergenceProgram = twgl.createProgramInfo(gl, [
   divergenceFrag,
 ])
 const gradientProgram = twgl.createProgramInfo(gl, [interiorVert, gradientFrag])
-const particleProgram = twgl.createProgramInfo(gl, [particleVert, particleFrag])
+const particleProgram = twgl.createProgramInfo(
+  gl,
+  [particleVert, particleFrag],
+  { transformFeedbackVaryings: ['v_coord'] },
+)
 const dyeProgram = twgl.createProgramInfo(gl, [gridVert, dyeFrag])
 const velocityProgram = twgl.createProgramInfo(gl, [gridVert, velocityFrag])
 const pressureProgram = twgl.createProgramInfo(gl, [gridVert, pressureFrag])
@@ -54,14 +58,32 @@ const particleArrays = {
   a_coord: [] as number[],
 }
 twgl.resizeCanvasToDisplaySize(gl.canvas)
-for (let i = 0; i < 10000; i++) {
+for (let i = 0; i < 1000000; i++) {
   const radius = Math.random() * 0.1
   const angle = Math.random() * Math.PI * 2
   const x = Math.cos(angle) * radius * (gl.canvas.height / gl.canvas.width)
-  const y = 0.5 + Math.sin(angle) * radius
+  const y = 0.85 + Math.sin(angle) * radius
   particleArrays.a_coord.push(x, y)
 }
-const particleBuffer = twgl.createBufferInfoFromArrays(gl, particleArrays)
+let particleBufferCurrent = twgl.createBufferInfoFromArrays(gl, particleArrays)
+let particleBufferNext = twgl.createBufferInfoFromArrays(gl, particleArrays)
+
+let particleTransformFeedbackCurrent = twgl.createTransformFeedback(
+  gl,
+  particleProgram,
+  {
+    ...particleBufferCurrent,
+    attribs: { v_coord: particleBufferCurrent.attribs!.a_coord },
+  },
+)
+let particleTransformFeedbackNext = twgl.createTransformFeedback(
+  gl,
+  particleProgram,
+  {
+    ...particleBufferNext,
+    attribs: { v_coord: particleBufferNext.attribs!.a_coord },
+  },
+)
 
 const gridArrays = {
   a_coord: [-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1],
@@ -104,7 +126,7 @@ function animate(time: number) {
 
   if (config.field === 'dye') {
     if (config.dye === 'particles') {
-      renderParticles()
+      renderParticles(timeStep)
     } else {
       renderDye()
     }
@@ -308,17 +330,41 @@ function subtractPressureGradient() {
   velocity.swap()
 }
 
-function renderParticles() {
+function renderParticles(timeStep: number) {
   twgl.bindFramebufferInfo(gl, null)
+
+  const uniforms = {
+    u_scale: [
+      2 * (timeStep / velocity.size[0]),
+      2 * (timeStep / velocity.size[1]),
+    ],
+    u_velocity: velocity.current.attachments[0],
+  }
 
   gl.enable(gl.BLEND)
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE)
 
   gl.useProgram(particleProgram.program)
-  twgl.setBuffersAndAttributes(gl, particleProgram, particleBuffer)
-  twgl.drawBufferInfo(gl, particleBuffer, gl.POINTS)
+  twgl.setBuffersAndAttributes(gl, particleProgram, particleBufferCurrent)
+  twgl.setUniforms(particleProgram, uniforms)
+
+  gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, particleTransformFeedbackNext)
+  gl.beginTransformFeedback(gl.POINTS)
+
+  twgl.drawBufferInfo(gl, particleBufferCurrent, gl.POINTS)
+
+  gl.endTransformFeedback()
+  gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null)
 
   gl.disable(gl.BLEND)
+
+  const bufferTemp = particleBufferCurrent
+  particleBufferCurrent = particleBufferNext
+  particleBufferNext = bufferTemp
+
+  const transformFeedbackTemp = particleTransformFeedbackCurrent
+  particleTransformFeedbackCurrent = particleTransformFeedbackNext
+  particleTransformFeedbackNext = transformFeedbackTemp
 }
 
 function renderDye() {
