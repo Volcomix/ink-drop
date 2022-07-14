@@ -15,6 +15,6 @@
   "devDependencies": {
     "@types/stats": "^0.16.30",
     "typescript": "^4.7.2",
-    "vite": "^2.9.9"
+    "vite": "^3.0.0"
   }
 }
