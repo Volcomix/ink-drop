@@ -4,9 +4,10 @@ import gl from './gl'
 
 export function createGrid(internalFormat: number) {
   const attachments = [{ internalFormat }]
+  const { width, height } = getGridSize()
 
   return {
-    current: twgl.createFramebufferInfo(gl, attachments),
+    current: twgl.createFramebufferInfo(gl, attachments, width, height),
 
     get size() {
       return [this.current.width, this.current.height]
@@ -21,10 +22,11 @@ export function createGrid(internalFormat: number) {
 
 export function createSwappableGrid(internalFormat: number) {
   const attachments = [{ internalFormat }]
+  const { width, height } = getGridSize()
 
   return {
-    current: twgl.createFramebufferInfo(gl, attachments),
-    next: twgl.createFramebufferInfo(gl, attachments),
+    current: twgl.createFramebufferInfo(gl, attachments, width, height),
+    next: twgl.createFramebufferInfo(gl, attachments, width, height),
 
     get size() {
       return [this.current.width, this.current.height]
