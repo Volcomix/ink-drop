@@ -217,10 +217,10 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-twgl.js@^4.22.1:
-  version "4.22.1"
-  resolved "https://registry.yarnpkg.com/twgl.js/-/twgl.js-4.22.1.tgz#5da45cc14a1b3f3762b61cd82f19769154a0755d"
-  integrity sha512-Aw+oTRXB2hGiLXMkZBsqy0BIxGwHPouT7eJECqPPafV9R7ZktQgpVMZjqCrc4KbFPW29st6a7/bdm/2wt+HiDg==
+twgl.js@^5.0.4:
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/twgl.js/-/twgl.js-5.0.4.tgz#4e3d54c4e8ff01af418bfbf7ce38df26595a6108"
+  integrity sha512-8U0ehLWvqOMTqMQd3xGjeQJSDwCNtoFvLg4V3Ne4QTCaPoJmOB4CSpy7MMHkMkc1qO2DMRhnV0uAgZmhO3Q/2w==
 
 typescript@^4.7.2:
   version "4.7.2"
