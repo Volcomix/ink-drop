@@ -10,7 +10,7 @@
   "dependencies": {
     "lil-gui": "^0.16.1",
     "stats.js": "^0.17.0",
-    "twgl.js": "^4.22.1"
+    "twgl.js": "^5.2.0"
   },
   "devDependencies": {
     "@types/stats": "^0.16.30",
