@@ -222,10 +222,10 @@ twgl.js@^4.22.1:
   resolved "https://registry.yarnpkg.com/twgl.js/-/twgl.js-4.22.1.tgz#5da45cc14a1b3f3762b61cd82f19769154a0755d"
   integrity sha512-Aw+oTRXB2hGiLXMkZBsqy0BIxGwHPouT7eJECqPPafV9R7ZktQgpVMZjqCrc4KbFPW29st6a7/bdm/2wt+HiDg==
 
-typescript@^4.7.2:
-  version "4.7.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.7.2.tgz#1f9aa2ceb9af87cca227813b4310fff0b51593c4"
-  integrity sha512-Mamb1iX2FDUpcTRzltPxgWMKy3fhg0TN378ylbktPGPK/99KbDtMQ4W1hwgsbPAsG3a0xKa1vmw4VKZQbkvz5A==
+typescript@^4.9.5:
+  version "4.9.5"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.5.tgz#095979f9bcc0d09da324d58d03ce8f8374cbe65a"
+  integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
 
 vite@^2.9.9:
   version "2.9.9"
