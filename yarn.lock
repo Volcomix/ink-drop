@@ -157,10 +157,10 @@ is-core-module@^2.8.1:
   dependencies:
     has "^1.0.3"
 
-lil-gui@^0.16.1:
-  version "0.16.1"
-  resolved "https://registry.yarnpkg.com/lil-gui/-/lil-gui-0.16.1.tgz#fe3a7eb20eea3fa6bc752b8caae96f2a385e8323"
-  integrity sha512-6wnnfBvQxJYRhdLyIA+w5b8utwbuVxNmtpTXElm36OSgHa8lyKp00Xz/4AEx3kvodT0AJYgbfadCFWAM0Q8DgQ==
+lil-gui@^0.18.0:
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/lil-gui/-/lil-gui-0.18.0.tgz#929c93d7d8224d7ddfe21d8ee60f13032d60bea6"
+  integrity sha512-9Zt0oW8KDy8mT8QTXTjAEmNT9Je9KLoCWUYiJD5DaB6eHoZ3hQYGt2JRJbCUHcvYgpwgcTHtzS9JFmN37vGyzw==
 
 nanoid@^3.3.4:
   version "3.3.4"
